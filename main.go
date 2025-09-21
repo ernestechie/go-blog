@@ -1,38 +1,55 @@
 package main
 
 import (
-	"github.com/ernestechie/go-blog/models"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/ernestechie/go-blog/routes"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-var db = make(map[string]models.UserModel)
+func init()  {
+	// Load environment variables.
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+
+// Middleware to remove trailing slashes
+func stripTrailingSlash() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if path != "/" && strings.HasSuffix(path, "/") {
+			c.Request.URL.Path = strings.TrimSuffix(path, "/")
+		}
+		c.Next()
+	}
+}
 
 func setupRouter() *gin.Engine {
+	var reactAppUri string
+	if reactAppUri = os.Getenv("REACT_APP_URL"); reactAppUri == "" {
+		log.Fatal("You must set your 'REACT_APP_URL' environment variable.")
+	}
+
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	router := gin.Default()
+	// router.RedirectTrailingSlash = false
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{reactAppUri},
+	}))
+	router.Use(stripTrailingSlash())
 
 	// Get all users
 	articleRoutes := router.Group("/articles")
-	articleRoutes.GET("/", routes.GetAllArticles)
-	articleRoutes.GET("/:id", routes.GetArticle)
-	articleRoutes.POST("/", routes.CreateArticle)
-	
-	// Get user value
-	// router.GET("/users/:name", func(c *gin.Context) {
-	// 	user := c.Params.ByName("name")
-	
-	// 	userExists, ok := db[user]
-	// 	if ok {
-	// 		// fmt.Println("Birthday", userExists.GetBirthday())
-	// 		c.JSON(http.StatusOK, gin.H{"data": gin.H{
-	// 			"user": userExists,
-	// 		}, "success": true, "message": "User successfully retrieved"})
-	// 	} else {
-	// 		c.JSON(http.StatusNotFound, gin.H{"data": nil, "success": true, "message": "User not found"})
-	// 	}
-	// })
+	articleRoutes.GET("", routes.GetAllArticles)
+	articleRoutes.GET(":id", routes.GetArticle)
+	articleRoutes.POST("", routes.CreateArticle)
 
 	// Authorized group (uses gin.BasicAuth() middleware)
 	// Same than:
