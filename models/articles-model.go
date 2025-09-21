@@ -8,5 +8,5 @@ type ArticleModel struct {
 	Description		string `json:"description,omitempty" binding:"required" validate:"gte=1" bson:"description,omitempty"`
 	// Author				UserModel `json:"author" binding:"required" validate:"required" bson:"author,omitempty"`
 	// Author				UserModel `json:"author"`
-	Author 					string		`json:"author"`
+	Author 					bson.ObjectID		`json:"author"`
 }

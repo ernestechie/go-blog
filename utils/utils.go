@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -21,11 +22,12 @@ var Validate = validator.New()
 func ParseAndValidate(c *gin.Context, data any) []ErrorResponse {
 	// Parse JSON body into struct
 	if err := c.Bind(&data); err != nil {
+		fmt.Println("Error(ParseAndValidate) ", err.Error())
+
 		return []ErrorResponse{
 			{
 				Field: "",
-				// Error: "Invalid request body format",
-				Error: err.Error(),
+				Error: "Invalid request body format." + err.Error(),
 			},
 		}
 	}
