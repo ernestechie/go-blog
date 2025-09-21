@@ -1,11 +1,17 @@
 package models
 
-import "go.mongodb.org/mongo-driver/v2/bson"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type ArticleModel struct {
 	ID           	bson.ObjectID 		`json:"id" bson:"_id,omitempty"`
 	Title					string `json:"title" binding:"required" validate:"gte=1" bson:"title,omitempty"`
 	Description		string `json:"description,omitempty" binding:"required" validate:"gte=1" bson:"description,omitempty"`
+	CreatedAt			time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt			time.Time `json:"updated_at" bson:"updated_at"`
 	// Author				UserModel `json:"author" binding:"required" validate:"required" bson:"author,omitempty"`
 	// Author				UserModel `json:"author"`
 	// Author 					bson.ObjectID		`json:"author"`

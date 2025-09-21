@@ -2,8 +2,10 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ernestechie/go-blog/db"
 	"github.com/ernestechie/go-blog/models"
@@ -56,6 +58,8 @@ func GetAllArticles(ctx *gin.Context) {
 
 func CreateArticle(ctx *gin.Context) {
 	article := models.ArticleModel{}
+	article.CreatedAt = time.Now()
+	article.UpdatedAt = time.Now()
 
 	// Parse and validate request body using utils
 	if errs := utils.ParseAndValidate(ctx, &article); len(errs) > 0 {
@@ -90,7 +94,23 @@ func CreateArticle(ctx *gin.Context) {
 
 
 func GetArticle(ctx *gin.Context)  {
+	articleId := ctx.Params.ByName("id")
 	article := models.ArticleModel{}
+
+	articleObjectId, userIdErr := bson.ObjectIDFromHex(articleId);
+	if userIdErr != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"data": nil, "success": false, "message": fmt.Sprintf("Invalid article ID, %v", articleId),})
+	return
+	}
+
+	fmt.Println(articleObjectId)
+	filter := bson.M{"_id": articleObjectId}
+	err := articlesColl.FindOne(context.TODO(), filter).Decode(&article)
+		if err != nil {
+			fmt.Println(err)
+			ctx.JSON(http.StatusNotFound, gin.H{"data": nil, "success": false, "message": "Article not found"})
+		return
+		}
 
 	ctx.JSON(http.StatusOK, gin.H{"data": gin.H{
 		"article": article,
